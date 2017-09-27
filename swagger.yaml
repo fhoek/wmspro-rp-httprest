@@ -1,0 +1,582 @@
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: "BOXwise Pro RP REST API"
+  description: | 
+    The BOS Remote Publisher API is the API used by BOXwise Pro to register and lookup remote publishers as well as allowing the remote publisher to upload/download files.
+    
+    The API is secured using a simple API Key Request Authorization scheme. Make sure the API Token is injected in the Headers of each request.
+    
+    ```bash
+    curl -X GET --header 'Accept: application/json' --header 'Authorization: Bearer <token>'
+    ```
+    
+    For publishers using the API the security pattern is almost the same:
+
+    ```bash
+    curl -X GET --header 'Accept: application/json' --header 'Authorization: Publisher <token>'
+    ```
+    
+    Make sure *token* is base64 encoded string of *key:secret* combined. 
+  termsOfService: http://app.boxwise.nl/api/terms/
+  contact:
+    name: Trancon bv 
+    email: f.vandenhoek@trancon.nl
+    url: http://docs.boxwiseprobosrestapi.apiary.io
+  license:
+    name: MIT
+    url: http://github.com/gruntjs/grunt/blob/master/LICENSE-MIT
+host: rp-httprest.app.boxwise.nl
+basePath: /api
+tags:
+  - name: Licenses
+    description: |
+      Licenses refer to BOXwise Pro licenses. These are created here in order to register remote publishers to a license.
+  - name: Files
+    description: |
+      Files refer to BOXwise Pro remote publisher files. These files are synced with the remote publisher.
+  - name: Publishers
+    description: |
+      Publishers refer to BOXwise Pro Remote Publishers.
+schemes:
+  - https
+consumes:
+  - application/json; charset=utf-8
+produces:
+  - application/json; charset=utf-8
+securityDefinitions:
+  ApiKeyAuthorization:
+    type: apiKey
+    name: Authorization
+    description: The API can only be used when you authorize the request using an API Key Token.
+    in: header
+  PublisherKeySecretAuthorization:
+    type: apiKey
+    name: Authorization
+    description: | 
+      The API can only be used when you authorize the request using an API Key/Secret Token based on key and secret.
+    in: header
+security:
+  - ApiKeyAuthorization: []
+paths:
+  /licenses:
+    get:
+      description: |
+        Returns all registered BOXwise Pro licenses.
+      operationId: findLicenses
+      tags:
+        - Licenses
+      parameters:
+        - name: name
+          in: query
+          description: License name to filter on
+          required: false
+          type: string
+        - name: limit
+          in: query
+          description: maximum number of results to return
+          required: false
+          type: integer
+          format: int32
+          default: 30
+        - name: pagecursor
+          in: query
+          description: the next page starting from cursor
+          required: false
+          type: string
+      responses:
+        200:
+          description: license response
+          schema:
+            $ref: '#/definitions/Licenses'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      description: Creates a new license in the store.  Duplicates are not allowed.
+      operationId: addLicense
+      tags:
+        - Licenses
+      parameters:
+        - name: license
+          in: body
+          description: License to add to the store
+          required: true
+          schema:
+            $ref: '#/definitions/NewLicense'
+      responses:
+        200:
+          description: license response
+          schema:
+            $ref: '#/definitions/License'
+        400:
+          description: Bad Request/Validation error
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /licenses/{licenseid}:
+    delete:
+      description: Deletes an existing license in the store.
+      operationId: deleteLicense
+      tags:
+        - Licenses
+      parameters:
+        - name: licenseid
+          in: path
+          description: License id of the license to delete from the store
+          required: true
+          type: string
+      responses:
+        204:
+          description: license deleted
+        400:
+          description: Bad Request/Validation error
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /files:
+    get:
+      description: |
+        List all files registered for this license id. (Cannot be called by publisher)
+      operationId: findFiles
+      tags:
+        - Files
+      parameters:
+        - name: licenseid
+          in: query
+          description: BOXwise Pro licenseid to filter on
+          required: false
+          type: string
+          default: none
+        - name: prefix
+          in: query
+          description: the prefix/folder to filter on
+          required: false
+          type: string
+          default: "/"
+        - name: limit
+          in: query
+          description: maximum number of results to return
+          required: false
+          type: integer
+          format: int32
+          default: 30
+      responses:
+        200:
+          description: files response
+          schema:
+            $ref: '#/definitions/Files'
+        400:
+          description: Bad Request/Validation error
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      description: |
+        Upload a new file
+      operationId: uploadFile
+      security:
+        - ApiKeyAuthorization: []
+          PublisherKeySecretAuthorization: []
+      consumes:
+        - multipart/form-data
+        - application/x-www-form-urlencoded
+      tags:
+        - Files
+      parameters:
+        - name: licenseid
+          in: formData
+          description: BOXwise Pro licenseid to filter on
+          required: false
+          type: string
+          default: none
+        - name: file
+          in: formData
+          description: The uploaded file data
+          required: true
+          type: file
+        - name: filename
+          in: formData
+          description: The name of the file
+          required: true
+          type: string
+        - name: overwrite
+          in: formData
+          description: Overwriteif exists
+          required: true
+          type: boolean
+          default: true
+        - name: prefix
+          in: formData
+          description: The prefix/folder to upload file to
+          required: false
+          type: string
+          default: "/"
+      responses:
+        200:
+          description: files response
+        400:
+          description: Bad Request/Validation error
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      description: Deletes an existing file in the store.
+      operationId: deleteFile
+      security:
+        - ApiKeyAuthorization: []
+          PublisherKeySecretAuthorization: []
+      tags:
+        - Files
+      parameters:
+        - name: licenseid
+          in: query
+          description: BOXwise Pro licenseid to filter on
+          required: false
+          type: string
+          default: none
+        - name: name
+          in: query
+          description: the name of the file
+          required: true
+          type: string
+        - name: prefix
+          in: query
+          description: the prefix/folder the files resides in
+          required: false
+          type: string
+          default: "/"
+      responses:
+        204:
+          description: file deleted
+        400:
+          description: Bad Request/Validation error
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /files/{licenseid}/download:
+    get:
+      description: Download a file from the store
+      operationId: downloadFile
+      produces: ['application/octet-stream']
+      tags:
+        - Files
+      parameters:
+        - name: licenseid
+          in: path
+          description: BOXwise Pro licenseid to filter on
+          required: true
+          type: string
+          default: none
+        - name: filepath
+          in: query
+          description: The name and prefix of the file combined (e.g. /in/010203/test.dat)
+          required: true
+          type: string
+          default: none
+      responses:
+        200:
+          description: The file download
+          schema:
+            type: file
+        400:
+          description: Bad Request/Validation error
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /publishers:
+    get:
+      description: |
+        Returns all publishers registered for this license id.
+      operationId: findPublishers
+      tags:
+        - Publishers
+      parameters:
+        - name: licenseid
+          in: query
+          description: BOXwise Pro licenseid to filter on
+          required: true
+          type: string
+          default: none
+        - name: limit
+          in: query
+          description: maximum number of results to return
+          required: false
+          type: integer
+          format: int32
+          default: 30
+        - name: pagecursor
+          in: query
+          description: the next page starting from cursor
+          required: false
+          type: string
+      responses:
+        200:
+          description: publishers response
+          schema:
+            $ref: '#/definitions/Publishers'
+        400:
+          description: Bad Request/Validation error
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      description: Creates a new publisher in the store. Duplicates are not allowed. The publisher key is checked against all other keys registered regardless under which licenseid they are registered.
+      operationId: addPublisher
+      tags:
+        - Publishers
+      parameters:
+        - name: publisher
+          in: body
+          description: Publisher to add to the store
+          required: true
+          schema:
+            $ref: '#/definitions/NewPublisher'
+      responses:
+        200:
+          description: publisher response
+          schema:
+            $ref: '#/definitions/Publisher'
+        400:
+          description: Bad Request/Validation error
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /publishers/{key}:
+    get:
+      description: Returns a publisher based on the key.
+      operationId: getPublisherByKey
+      tags:
+        - Publishers
+      parameters:
+        - name: key
+          in: path
+          description: Key of publisher to fetch
+          required: true
+          type: string
+      responses:
+        200:
+          description: publisher response
+          schema:
+            $ref: '#/definitions/Publisher'
+        400:
+          description: Bad Request/Validation error
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      description: Deletes a single publisher based on the key supplied.
+      operationId: deletePublisher
+      tags:
+        - Publishers
+      parameters:
+        - name: key
+          in: path
+          description: Key of publishers to delete
+          required: true
+          type: string
+      responses:
+        204:
+          description: publishers deleted
+        400:
+          description: Bad Request/Validation error
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+definitions:
+  PagedResult:
+    properties:
+      nextcursor:
+        type: string
+  Licenses:
+    allOf:
+      - $ref: '#/definitions/PagedResult'
+      - type: object
+        properties:
+          result:
+            type: array
+            items:
+              $ref: '#/definitions/License'
+    example:
+      nextcursor: kwqjhekjeekwq32u4hfgde==
+      result: 
+        - name: "Customer X"
+          licenseid: 112
+          key: 324764278
+          timeCreated: "1985-04-12T23:20:50.52Z"
+        - name: "Customer Y"
+          licenseid: 113
+          key: 32474344278
+          timeCreated: "1985-04-12T23:20:50.52Z"
+  License:
+    allOf:
+      - $ref: '#/definitions/NewLicense'
+      - type: object
+        properties:
+          key:
+            type: string
+          timeCreated:
+            type: string
+            format: date-time
+    required:
+      - key
+    example:
+      key: -3422423532
+      licenseid: 122
+      name: "Customer X"
+      timeCreated: "1985-04-12T23:20:50.52Z"
+  NewLicense:
+    required:
+      - licenseid
+      - name
+    properties:
+      licenseid:
+        type: string
+      name:
+        type: string
+    example:
+      licenseid: "122"
+      name: "Customer X"
+  Publishers:
+    allOf:
+      - $ref: '#/definitions/PagedResult'
+      - type: object
+        properties:
+          result:
+            type: array
+            items:
+              $ref: '#/definitions/Publisher'
+    example:
+      nextcursor: kwqjhewekjeekwq32u4hfgde==
+      result: 
+        - licenseid: "122"
+          key: "kdqjwk8q3e47qjdnbeqhwg"
+          secret: "qwjkdhgqjkhgr2fbrfjhrlqwkjfb378fgblq3fkjwqmnfbrbq"
+          name: "HL - Hospital Logistics #1"
+          timeCreated: "1985-04-12T23:20:50.52Z"
+        - licenseid: "122"
+          key: "wfoiquyr4kjfrehwfhjkgqr"
+          secret: "welkjfgqjwhfbi348irbfqkwj34qergewrgkjrehwfgjkhbre"
+          name: "HL - Hospital Logistics #2"
+          timeCreated: "1985-04-12T23:20:50.52Z"
+  Publisher:
+    allOf:
+      - $ref: '#/definitions/NewPublisher'
+      - type: object
+        properties:
+          key:
+            type: string
+          secret:
+            type: string
+          expiresAt:
+            type: string
+            format: date-time
+          timeCreated:
+            type: string
+            format: date-time
+    required  :
+      - key
+      - secret
+      - licenseid
+    example:
+      licenseid: "122"
+      key: "kdqjwk8q3e47qjdnbeqhwg"
+      secret: "qwjkdhgqjkhgr2fbrfjhrlqwkjfb378fgblq3fkjwqmnfbrbq"
+      name: "HL - Hospital Logistics"
+      expiresAt: "2020-04-12T23:20:50.52Z"
+      timeCreated: "1985-04-12T23:20:50.52Z"
+  NewPublisher:
+    required:
+      - licenseid
+      - name
+    properties:
+      licenseid:
+        type: string
+      name:
+        type: string
+    example:
+      licenseid: "122"
+      name: "HL - Hospital Logistics"
+  Files:
+    properties:
+      result:
+        type: array
+        items:
+          $ref: '#/definitions/File'
+    example:
+      result: 
+        - name: "meta.dat"
+          size: 115
+          timeCreated: "1985-04-12T23:20:50.52Z"
+        - name: "prodidx.dat"
+          size: 3343
+          timeCreated: "1985-04-12T23:20:50.52Z"
+          updated: "1985-04-12T23:20:50.52Z"
+  File:
+    required:
+      - name
+      - size
+    properties:
+      name:
+        type: string
+      size:
+        type: integer
+        format: int64
+      timeCreated:
+        type: string
+        format: date-time
+      updated:
+        type: string
+        format: date-time
+    example:
+      name: "meta.dat"
+      size: 115
+      timeCreated: "1985-04-12T23:20:50.52Z"
+      updated: "1985-04-12T23:20:50.52Z"
+  Error:
+    required:
+      - statusCode
+      - error
+    properties:
+      statusCode:
+        type: integer
+        format: int32
+      error:
+        type: string
+      message:
+        type: string
+    example:
+      statusCode: 500
+      error: "Internal Server Erorr"
+      message: "An unhandled Internal Server Erorr occurred"
