@@ -146,6 +146,9 @@ paths:
       description: |
         List all files registered for this license id. (Cannot be called by publisher)
       operationId: findFiles
+      security:
+        - ApiKeyAuthorization: []
+          PublisherKeySecretAuthorization: []
       tags:
         - Files
       parameters:
