@@ -3,7 +3,7 @@ info:
   version: 1.0.0
   title: "BOXwise Pro RP REST API"
   description: | 
-    The BOS Remote Publisher API is the API used by BOXwise Pro to register and lookup remote publishers as well as allowing the remote publisher to upload/download files.
+    The Remote Publisher API is the API used by BOXwise Pro to register and lookup remote publishers as well as allowing the remote publisher to upload/download files.
     
     The API is secured using a simple API Key Request Authorization scheme. Make sure the API Token is injected in the Headers of each request.
     
@@ -22,7 +22,7 @@ info:
   contact:
     name: Trancon bv 
     email: f.vandenhoek@trancon.nl
-    url: http://docs.boxwiseprobosrestapi.apiary.io
+    url: http://docs.boxwiseprorprestapi.apiary.io
   license:
     name: MIT
     url: http://github.com/gruntjs/grunt/blob/master/LICENSE-MIT
