@@ -395,6 +395,36 @@ paths:
           description: unexpected error
           schema:
             $ref: '#/definitions/Error'
+    put: 
+      description: Updates publisher name and key expiration.
+      operationId: updatePublisherByKey
+      tags:
+        - Publishers
+      parameters:
+        - name: key
+          in: path
+          description: Key of publisher to update
+          required: true
+          type: string
+        - name: publisher
+          in: body
+          description: Publisher to update
+          required: true
+          schema:
+            $ref: '#/definitions/EditPublisher'  
+      responses:
+        200:
+          description: publisher response
+          schema:
+            $ref: '#/definitions/Publisher'
+        400:
+          description: Bad Request/Validation error
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
     delete:
       description: Deletes a single publisher based on the key supplied.
       operationId: deletePublisher
@@ -531,6 +561,27 @@ definitions:
     example:
       licenseid: "122"
       name: "HL - Hospital Logistics"
+  EditPublisher:
+    required:
+      - licenseid
+      - name
+      - key
+      - expiresAt
+    properties:
+      licenseid:
+        type: string
+      key:
+        type: string
+      name:
+        type: string
+      expiresAt:
+        type: string
+        format: date-time
+    example:
+      licenseid: "122"
+      key: "publisherkey"
+      name: "HL - Hospital Logistics"
+      expiresAt:  "1985-04-12T23:20:50.52Z"
   Files:
     properties:
       result:
