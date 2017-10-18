@@ -563,24 +563,12 @@ definitions:
       name: "HL - Hospital Logistics"
   EditPublisher:
     required:
-      - licenseid
-      - name
-      - key
       - expiresAt
     properties:
-      licenseid:
-        type: string
-      key:
-        type: string
-      name:
-        type: string
       expiresAt:
         type: string
         format: date-time
     example:
-      licenseid: "122"
-      key: "publisherkey"
-      name: "HL - Hospital Logistics"
       expiresAt:  "1985-04-12T23:20:50.52Z"
   Files:
     properties:
