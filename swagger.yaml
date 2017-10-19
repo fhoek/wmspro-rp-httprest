@@ -564,12 +564,16 @@ definitions:
   EditPublisher:
     required:
       - expiresAt
+      - name
     properties:
+      name:
+        type: string
       expiresAt:
         type: string
         format: date-time
     example:
       expiresAt:  "1985-04-12T23:20:50.52Z"
+      name: "HL - Hospital Logistics"
   Files:
     properties:
       result:
