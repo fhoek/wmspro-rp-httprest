@@ -686,7 +686,7 @@ definitions:
       licenseid:
   UploadedFileResponse:
     required:
-      - filename
+      - name
       - size
       - licenseid
     allOf:
