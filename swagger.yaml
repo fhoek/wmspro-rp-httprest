@@ -685,6 +685,10 @@ definitions:
       prefix: /ex
       licenseid:
   UploadedFileResponse:
+    required:
+      - filename
+      - size
+      - licenseid
     allOf:
       - $ref: '#/definitions/File'
       - type: object
