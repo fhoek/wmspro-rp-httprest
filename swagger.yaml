@@ -191,6 +191,36 @@ paths:
       security:
         - ApiKeyAuthorization: []
           PublisherKeySecretAuthorization: []
+      tags:
+        - Files
+      parameters:
+        - name: license
+          in: body
+          description: File to upload to boxwise
+          required: true
+          schema:
+            $ref: '#/definitions/UploadFile'
+      responses:
+        200:
+          description: file response
+          schema:
+            $ref: '#/definitions/UploadedFileResponse'
+        400:
+          description: Bad Request/Validation error
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /files-formdata:
+    post:
+      description: |
+        Upload a new file
+      operationId: uploadFileThroughFormdata
+      security:
+        - ApiKeyAuthorization: []
+          PublisherKeySecretAuthorization: []
       consumes:
         - multipart/form-data
         - application/x-www-form-urlencoded
@@ -227,7 +257,9 @@ paths:
           default: "/"
       responses:
         200:
-          description: files response
+          description: file response
+          schema:
+            $ref: '#/definitions/UploadedFileResponse'
         400:
           description: Bad Request/Validation error
           schema:
@@ -370,7 +402,7 @@ paths:
           description: unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /publishers/{key}:
+  /{licenseid}/publishers/{key}:
     get:
       description: Returns a publisher based on the key.
       operationId: getPublisherByKey
@@ -380,6 +412,11 @@ paths:
         - name: key
           in: path
           description: Key of publisher to fetch
+          required: true
+          type: string
+        - name: licenseid
+          in: path
+          description: LicenseId of the publisher.
           required: true
           type: string
       responses:
@@ -404,6 +441,11 @@ paths:
         - name: key
           in: path
           description: Key of publisher to update
+          required: true
+          type: string
+        - name: licenseid
+          in: path
+          description: LicenseId of the publisher.
           required: true
           type: string
         - name: publisher
@@ -434,6 +476,11 @@ paths:
         - name: key
           in: path
           description: Key of publishers to delete
+          required: true
+          type: string
+        - name: licenseid
+          in: path
+          description: LicenseId of the publisher.
           required: true
           type: string
       responses:
@@ -538,7 +585,7 @@ definitions:
           timeCreated:
             type: string
             format: date-time
-    required  :
+    required:
       - key
       - secret
       - licenseid
@@ -606,6 +653,46 @@ definitions:
         type: string
         format: date-time
     example:
+      name: "meta.dat"
+      size: 115
+      timeCreated: "1985-04-12T23:20:50.52Z"
+      updated: "1985-04-12T23:20:50.52Z"
+  UploadFile:
+    required:
+      - filename
+      - file
+      - overwrite
+      - prefix
+    properties:
+      licenseid:
+        type: string
+        description: license to upload file under. Only needed with ApikeyAuthorization
+      filename:
+        type: string
+        description: name of the file to upload it under to boxwise
+      file:
+        type: string
+        description: file contents of the file
+      overwrite:
+        type: boolean
+        description: wether to overwrite file if it already exists
+      prefix:
+        type: string
+    example:
+      filename: "meta.dat"
+      file: "filecontents\nlike\nthis"
+      overwrite: false
+      prefix: /ex
+      licenseid:
+  UploadedFileResponse:
+    allOf:
+      - $ref: '#/definitions/File'
+      - type: object
+        properties:
+          licenseid:
+            type: string
+    example:
+      licenseid: "12"
       name: "meta.dat"
       size: 115
       timeCreated: "1985-04-12T23:20:50.52Z"
