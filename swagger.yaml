@@ -213,6 +213,43 @@ paths:
           description: unexpected error
           schema:
             $ref: '#/definitions/Error'
+    delete:
+      description: Deletes an existing file in the store.
+      operationId: deleteFile
+      security:
+        - ApiKeyAuthorization: []
+          PublisherKeySecretAuthorization: []
+      tags:
+        - Files
+      parameters:
+        - name: licenseid
+          in: query
+          description: BOXwise Pro licenseid to filter on
+          required: false
+          type: string
+          default: none
+        - name: name
+          in: query
+          description: the name of the file
+          required: true
+          type: string
+        - name: prefix
+          in: query
+          description: the prefix/folder the files resides in
+          required: false
+          type: string
+          default: "/"
+      responses:
+        204:
+          description: file deleted
+        400:
+          description: Bad Request/Validation error
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   /files-formdata:
     post:
       description: |
@@ -260,43 +297,6 @@ paths:
           description: file response
           schema:
             $ref: '#/definitions/UploadedFileResponse'
-        400:
-          description: Bad Request/Validation error
-          schema:
-            $ref: '#/definitions/Error'
-        default:
-          description: unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-    delete:
-      description: Deletes an existing file in the store.
-      operationId: deleteFile
-      security:
-        - ApiKeyAuthorization: []
-          PublisherKeySecretAuthorization: []
-      tags:
-        - Files
-      parameters:
-        - name: licenseid
-          in: query
-          description: BOXwise Pro licenseid to filter on
-          required: false
-          type: string
-          default: none
-        - name: name
-          in: query
-          description: the name of the file
-          required: true
-          type: string
-        - name: prefix
-          in: query
-          description: the prefix/folder the files resides in
-          required: false
-          type: string
-          default: "/"
-      responses:
-        204:
-          description: file deleted
         400:
           description: Bad Request/Validation error
           schema:
