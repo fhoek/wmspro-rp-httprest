@@ -194,7 +194,7 @@ paths:
       tags:
         - Files
       parameters:
-        - name: license
+        - name: file
           in: body
           description: File to upload to boxwise
           required: true
@@ -662,7 +662,6 @@ definitions:
       - filename
       - file
       - overwrite
-      - prefix
     properties:
       licenseid:
         type: string
@@ -684,7 +683,7 @@ definitions:
       file: "ZmlsZTtjb250ZW50czsK"
       overwrite: false
       prefix: /ex
-      licenseid:
+      licenseid: test-lic
   UploadedFileResponse:
     required:
       - name
