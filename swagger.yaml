@@ -144,7 +144,7 @@ paths:
   /files:
     get:
       description: |
-        List all files registered for this license id. (Cannot be called by publisher)
+        List all files registered for this license id. 
       operationId: findFiles
       security:
         - ApiKeyAuthorization: []
@@ -672,7 +672,8 @@ definitions:
         description: name of the file to upload it under to boxwise
       file:
         type: string
-        description: file contents of the file
+        description: file contents of the file base64 encoded
+        format: byte
       overwrite:
         type: boolean
         description: wether to overwrite file if it already exists
@@ -680,7 +681,7 @@ definitions:
         type: string
     example:
       filename: "meta.dat"
-      file: "filecontents\nlike\nthis"
+      file: "ZmlsZTtjb250ZW50czsK"
       overwrite: false
       prefix: /ex
       licenseid:
