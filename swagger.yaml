@@ -261,10 +261,10 @@ paths:
             $ref: '#/definitions/Error'
   /files-formdata:
     post:
+      operationId: uploadFileThroughFormdata
       summary: upload a file (formdata)
       description: |
-        Upload a new file
-      operationId: uploadFileThroughFormdata through multipart/form-data protocol.
+        Upload a new file through multipart/form-data protocol.
       security:
         - ApiKeyAuthorization: []
           PublisherKeySecretAuthorization: []
