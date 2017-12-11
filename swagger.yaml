@@ -37,7 +37,7 @@ tags:
       Files refer to BOXwise Pro remote publisher files. These files are synced with the remote publisher.
   - name: Publishers
     description: |
-      Publishers refer to BOXwise Pro Remote Publishers.
+      Publishers refer to BOXwise Pro Remote Publishers. These are API keys which can be used to upload files to BOXwise pro.
 schemes:
   - https
 consumes:
@@ -53,35 +53,34 @@ securityDefinitions:
   PublisherKeySecretAuthorization:
     type: apiKey
     name: Authorization
-    description: | 
-      The API can only be used when you authorize the request using an API Key/Secret Token based on key and secret.
+    description: The Files API be used when you authorize the request using an API Key/Secret Token based on a publisher key and secret.
     in: header
 security:
   - ApiKeyAuthorization: []
 paths:
   /licenses:
     get:
-      description: |
-        Returns all registered BOXwise Pro licenses.
+      summary: Find licenses
+      description: Find all registered BOXwise Pro licenses.
       operationId: findLicenses
       tags:
         - Licenses
       parameters:
         - name: name
           in: query
-          description: License name to filter on
+          description: License name to filter on.
           required: false
           type: string
         - name: limit
           in: query
-          description: maximum number of results to return
+          description: Maximum number of results to return.
           required: false
           type: integer
           format: int32
           default: 30
         - name: pagecursor
           in: query
-          description: the next page starting from cursor
+          description: The next page starting from cursor.
           required: false
           type: string
       responses:
@@ -94,7 +93,8 @@ paths:
           schema:
             $ref: '#/definitions/Error'
     post:
-      description: Creates a new license in the store.  Duplicates are not allowed.
+      summary: Add a new license
+      description: Add a new BOXwisePro license. Duplicates are not allowed.
       operationId: addLicense
       tags:
         - Licenses
@@ -120,14 +120,15 @@ paths:
             $ref: '#/definitions/Error'
   /licenses/{licenseid}:
     delete:
-      description: Deletes an existing license in the store.
+      summary: Delete a license
+      description: Deletes an existing license in the store and removes all it's publishers.
       operationId: deleteLicense
       tags:
         - Licenses
       parameters:
         - name: licenseid
           in: path
-          description: License id of the license to delete from the store
+          description: License id of the license to delete from the store.
           required: true
           type: string
       responses:
@@ -143,8 +144,10 @@ paths:
             $ref: '#/definitions/Error'
   /files:
     get:
+      summary: Find files
       description: |
-        List all files registered for this license id. 
+        Find all files registered for this license id. 
+        You can use pagecursor to retrieve the next page of results.
       operationId: findFiles
       security:
         - ApiKeyAuthorization: []
@@ -154,23 +157,27 @@ paths:
       parameters:
         - name: licenseid
           in: query
-          description: BOXwise Pro licenseid to filter on
+          description: BOXwise Pro licenseid to filter on.
           required: false
           type: string
-          default: none
         - name: prefix
           in: query
-          description: the prefix/folder to filter on
+          description: The prefix/folder to filter on.
           required: false
           type: string
           default: "/"
         - name: limit
           in: query
-          description: maximum number of results to return
+          description: Maximum number of results to return.
           required: false
           type: integer
           format: int32
           default: 30
+        - name: pagecursor
+          in: query
+          description: The next page starting from cursor.
+          required: false
+          type: string
       responses:
         200:
           description: files response
@@ -185,6 +192,7 @@ paths:
           schema:
             $ref: '#/definitions/Error'
     post:
+      summary: Upload a file
       description: |
         Upload a new file
       operationId: uploadFile
@@ -196,7 +204,7 @@ paths:
       parameters:
         - name: file
           in: body
-          description: File to upload to boxwise
+          description: File to upload to boxwise.
           required: true
           schema:
             $ref: '#/definitions/UploadFile'
@@ -214,6 +222,7 @@ paths:
           schema:
             $ref: '#/definitions/Error'
     delete:
+      summary: Delete a file
       description: Deletes an existing file in the store.
       operationId: deleteFile
       security:
@@ -224,18 +233,18 @@ paths:
       parameters:
         - name: licenseid
           in: query
-          description: BOXwise Pro licenseid to filter on
+          description: BOXwise Pro licenseid to filter on.
           required: false
           type: string
           default: none
         - name: name
           in: query
-          description: the name of the file
+          description: The name of the file.
           required: true
           type: string
         - name: prefix
           in: query
-          description: the prefix/folder the files resides in
+          description: The prefix/folder the files resides in.
           required: false
           type: string
           default: "/"
@@ -252,9 +261,10 @@ paths:
             $ref: '#/definitions/Error'
   /files-formdata:
     post:
+      summary: upload a file (formdata)
       description: |
         Upload a new file
-      operationId: uploadFileThroughFormdata
+      operationId: uploadFileThroughFormdata through multipart/form-data protocol.
       security:
         - ApiKeyAuthorization: []
           PublisherKeySecretAuthorization: []
@@ -266,18 +276,18 @@ paths:
       parameters:
         - name: licenseid
           in: formData
-          description: BOXwise Pro licenseid to filter on
+          description: BOXwise Pro licenseid (not needed for publishers).
           required: false
           type: string
           default: none
         - name: file
           in: formData
-          description: The uploaded file data
+          description: The uploaded file data.
           required: true
           type: file
         - name: filename
           in: formData
-          description: The name of the file
+          description: The name of the file.
           required: true
           type: string
         - name: overwrite
@@ -307,6 +317,7 @@ paths:
             $ref: '#/definitions/Error'
   /files/{licenseid}/download:
     get:
+      summary: Download a file
       description: Download a file from the store
       operationId: downloadFile
       produces: ['application/octet-stream']
@@ -315,13 +326,13 @@ paths:
       parameters:
         - name: licenseid
           in: path
-          description: BOXwise Pro licenseid to filter on
+          description: BOXwise Pro licenseid to filter on.
           required: true
           type: string
           default: none
         - name: filepath
           in: query
-          description: The name and prefix of the file combined (e.g. /in/010203/test.dat)
+          description: The name and prefix of the file combined (e.g. /in/010203/test.dat).
           required: true
           type: string
           default: none
@@ -340,6 +351,7 @@ paths:
             $ref: '#/definitions/Error'
   /publishers:
     get:
+      summary: Find publishers
       description: |
         Returns all publishers registered for this license id.
       operationId: findPublishers
@@ -348,20 +360,20 @@ paths:
       parameters:
         - name: licenseid
           in: query
-          description: BOXwise Pro licenseid to filter on
+          description: BOXwise Pro licenseid to filter on.
           required: true
           type: string
           default: none
         - name: limit
           in: query
-          description: maximum number of results to return
+          description: Maximum number of results to return.
           required: false
           type: integer
           format: int32
           default: 30
         - name: pagecursor
           in: query
-          description: the next page starting from cursor
+          description: The next page starting from cursor.
           required: false
           type: string
       responses:
@@ -378,14 +390,15 @@ paths:
           schema:
             $ref: '#/definitions/Error'
     post:
-      description: Creates a new publisher in the store. Duplicates are not allowed. The publisher key is checked against all other keys registered regardless under which licenseid they are registered.
       operationId: addPublisher
+      summary: Add a new publisher
+      description: Creates a new publisher in the store. Duplicates are not allowed. The publisher key is checked against all other keys registered regardless under which licenseid they are registered.
       tags:
         - Publishers
       parameters:
         - name: publisher
           in: body
-          description: Publisher to add to the store
+          description: Publisher to add to the store.
           required: true
           schema:
             $ref: '#/definitions/NewPublisher'
@@ -411,7 +424,7 @@ paths:
       parameters:
         - name: key
           in: path
-          description: Key of publisher to fetch
+          description: Key of publisher to fetch.
           required: true
           type: string
         - name: licenseid
@@ -433,24 +446,27 @@ paths:
           schema:
             $ref: '#/definitions/Error'
     put: 
-      description: Updates publisher name and key expiration.
+      summary: Update a publisher
+      description: >
+        Updates publisher name and expiration date.
+        The licenseid ensures a publisher from antoher license cannot edited.
       operationId: updatePublisherByKey
       tags:
         - Publishers
       parameters:
         - name: key
           in: path
-          description: Key of publisher to update
+          description: Key of publisher to update.
           required: true
           type: string
         - name: licenseid
           in: path
-          description: LicenseId of the publisher.
+          description: BOXwise Pro licenseid of the publisher.
           required: true
           type: string
         - name: publisher
           in: body
-          description: Publisher to update
+          description: Publisher to update.
           required: true
           schema:
             $ref: '#/definitions/EditPublisher'  
@@ -468,19 +484,22 @@ paths:
           schema:
             $ref: '#/definitions/Error'
     delete:
-      description: Deletes a single publisher based on the key supplied.
+      summary: Delete a publisher
+      description: >
+        Deletes a single publisher based on the key supplied.
+        The licenseid ensures a publisher from antoher license cannot be deleted.
       operationId: deletePublisher
       tags:
         - Publishers
       parameters:
         - name: key
           in: path
-          description: Key of publishers to delete
+          description: Key of publishers to delete.
           required: true
           type: string
         - name: licenseid
           in: path
-          description: LicenseId of the publisher.
+          description: BOXwise Pro licenseid of the publisher.
           required: true
           type: string
       responses:
@@ -622,11 +641,14 @@ definitions:
       expiresAt:  "1985-04-12T23:20:50.52Z"
       name: "HL - Hospital Logistics"
   Files:
-    properties:
-      result:
-        type: array
-        items:
-          $ref: '#/definitions/File'
+    allOf:
+      - $ref: '#/definitions/PagedResult'
+      - type: object
+        properties:
+          result:
+            type: array
+            items:
+              $ref: '#/definitions/File'
     example:
       result: 
         - name: "meta.dat"
@@ -636,6 +658,7 @@ definitions:
           size: 3343
           timeCreated: "1985-04-12T23:20:50.52Z"
           updated: "1985-04-12T23:20:50.52Z"
+      nextcursor: "ReferenceToNextPage"
   File:
     required:
       - name
