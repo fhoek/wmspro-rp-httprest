@@ -447,7 +447,7 @@ paths:
             $ref: '#/definitions/Error'
     put: 
       summary: Update a publisher
-      description: >
+      description: |
         Updates publisher name and expiration date.
         The licenseid ensures a publisher from antoher license cannot edited.
       operationId: updatePublisherByKey
@@ -485,7 +485,7 @@ paths:
             $ref: '#/definitions/Error'
     delete:
       summary: Delete a publisher
-      description: >
+      description: |
         Deletes a single publisher based on the key supplied.
         The licenseid ensures a publisher from antoher license cannot be deleted.
       operationId: deletePublisher
