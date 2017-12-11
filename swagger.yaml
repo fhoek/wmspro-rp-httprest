@@ -146,8 +146,7 @@ paths:
     get:
       summary: Find files
       description: |
-        Find all files registered for this license id. 
-        You can use pagecursor to retrieve the next page of results.
+        Find all files registered for this license id.
       operationId: findFiles
       security:
         - ApiKeyAuthorization: []
@@ -173,11 +172,6 @@ paths:
           type: integer
           format: int32
           default: 30
-        - name: pagecursor
-          in: query
-          description: The next page starting from cursor.
-          required: false
-          type: string
       responses:
         200:
           description: files response
