@@ -417,6 +417,7 @@ paths:
             $ref: '#/definitions/Error'
   /{licenseid}/publishers/{key}:
     get:
+      summary: Get a publisher by key
       description: Returns a publisher based on the key.
       operationId: getPublisherByKey
       tags:
