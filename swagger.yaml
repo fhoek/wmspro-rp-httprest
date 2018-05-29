@@ -1,23 +1,35 @@
 swagger: "2.0"
 info:
-  version: 1.0.0
+  version: 2.0.0
   title: "BOXwise Pro RP REST API"
   description: | 
     The Remote Publisher API is the API used by BOXwise Pro to register and lookup remote publishers as well as allowing the remote publisher to upload/download files.
     
     The API is secured using a simple API Key Request Authorization scheme. Make sure the API Token is injected in the Headers of each request.
     
-    ```bash
-    curl -X GET --header 'Accept: application/json' --header 'Authorization: Bearer <token>'
+    **Admin Scoped Access**
+    ```
+    curl -X GET --header 'Accept: application/json' --header 'Authorization: Bearer [token]'
     ```
     
+    **Publisher Scoped Access**
     For publishers using the API the security pattern is almost the same:
 
-    ```bash
-    curl -X GET --header 'Accept: application/json' --header 'Authorization: Publisher <token>'
+    ```
+    curl -X GET --header 'Accept: application/json' --header 'Authorization: Publisher [token]'
     ```
     
-    Make sure *token* is base64 encoded string of *key:secret* combined. 
+    Make sure *token* is base64 encoded string of `key:secret` combined. 
+    
+    **License Scoped Access**
+    
+    For licenses (non-admin) using the API the security pattern is almost the same:
+
+    ```
+    curl -X GET --header 'Accept: application/json' --header 'Authorization: License [token]'
+    ```
+
+    Make sure token is base64 encoded string of `licenseid:apikey` combined.
   termsOfService: http://app.boxwise.nl/api/terms/
   contact:
     name: Trancon bv 
@@ -53,14 +65,18 @@ securityDefinitions:
   PublisherKeySecretAuthorization:
     type: apiKey
     name: Authorization
-    description: The Files API be used when you authorize the request using an API Key/Secret Token based on a publisher key and secret.
+    description: The Files API be used when you authorize the request using an API Key/Secret Token based on a publisher key and secret. It will scope persmissions to this publisher.
+    in: header
+  LicenseKeySecretAuthorization:
+    type: apiKey
+    name: Authorization
+    description: API Key for specific license that scopes permissions to this license
     in: header
 security:
   - ApiKeyAuthorization: []
 paths:
   /licenses:
     get:
-      summary: Find licenses
       description: Find all registered BOXwise Pro licenses.
       operationId: findLicenses
       tags:
@@ -93,9 +109,9 @@ paths:
           schema:
             $ref: '#/definitions/Error'
     post:
-      summary: Add a new license
-      description: Add a new BOXwisePro license. Duplicates are not allowed.
+      description: Creates a new license in the store if it does not already exist. Duplicates are not allowed. Returns an unauthorized API Key which can be used to perform subsequent requests (after it is approved).
       operationId: addLicense
+      security: []
       tags:
         - Licenses
       parameters:
@@ -109,9 +125,13 @@ paths:
         200:
           description: license response
           schema:
-            $ref: '#/definitions/License'
+            $ref: '#/definitions/LicenseWithSecret'
         400:
           description: Bad Request/Validation error
+          schema:
+            $ref: '#/definitions/Error'
+        409:
+          description: Conflict/Already exists
           schema:
             $ref: '#/definitions/Error'
         default:
@@ -120,7 +140,6 @@ paths:
             $ref: '#/definitions/Error'
   /licenses/{licenseid}:
     delete:
-      summary: Delete a license
       description: Deletes an existing license in the store and removes all it's publishers.
       operationId: deleteLicense
       tags:
@@ -144,12 +163,12 @@ paths:
             $ref: '#/definitions/Error'
   /files:
     get:
-      summary: Find files
       description: |
         Find all files registered for this license id.
       operationId: findFiles
       security:
         - ApiKeyAuthorization: []
+          LicenseKeySecretAuthorization: []
           PublisherKeySecretAuthorization: []
       tags:
         - Files
@@ -186,12 +205,12 @@ paths:
           schema:
             $ref: '#/definitions/Error'
     post:
-      summary: Upload a file
       description: |
         Upload a new file
       operationId: uploadFile
       security:
         - ApiKeyAuthorization: []
+          LicenseKeySecretAuthorization: []
           PublisherKeySecretAuthorization: []
       tags:
         - Files
@@ -216,11 +235,11 @@ paths:
           schema:
             $ref: '#/definitions/Error'
     delete:
-      summary: Delete a file
       description: Deletes an existing file in the store.
       operationId: deleteFile
       security:
         - ApiKeyAuthorization: []
+          LicenseKeySecretAuthorization: []
           PublisherKeySecretAuthorization: []
       tags:
         - Files
@@ -256,11 +275,11 @@ paths:
   /files-formdata:
     post:
       operationId: uploadFileThroughFormdata
-      summary: upload a file (formdata)
       description: |
         Upload a new file through multipart/form-data protocol.
       security:
         - ApiKeyAuthorization: []
+          LicenseKeySecretAuthorization: []
           PublisherKeySecretAuthorization: []
       consumes:
         - multipart/form-data
@@ -311,8 +330,10 @@ paths:
             $ref: '#/definitions/Error'
   /files/{licenseid}/download:
     get:
-      summary: Download a file
       description: Download a file from the store
+      security:
+        - ApiKeyAuthorization: []
+          LicenseKeySecretAuthorization: []
       operationId: downloadFile
       produces: ['application/octet-stream']
       tags:
@@ -345,9 +366,11 @@ paths:
             $ref: '#/definitions/Error'
   /publishers:
     get:
-      summary: Find publishers
       description: |
         Returns all publishers registered for this license id.
+      security:
+        - ApiKeyAuthorization: []
+          LicenseKeySecretAuthorization: []
       operationId: findPublishers
       tags:
         - Publishers
@@ -385,8 +408,10 @@ paths:
             $ref: '#/definitions/Error'
     post:
       operationId: addPublisher
-      summary: Add a new publisher
       description: Creates a new publisher in the store. Duplicates are not allowed. The publisher key is checked against all other keys registered regardless under which licenseid they are registered.
+      security:
+        - ApiKeyAuthorization: []
+          LicenseKeySecretAuthorization: []
       tags:
         - Publishers
       parameters:
@@ -411,8 +436,10 @@ paths:
             $ref: '#/definitions/Error'
   /{licenseid}/publishers/{key}:
     get:
-      summary: Get a publisher by key
       description: Returns a publisher based on the key.
+      security:
+        - ApiKeyAuthorization: []
+          LicenseKeySecretAuthorization: []
       operationId: getPublisherByKey
       tags:
         - Publishers
@@ -441,10 +468,12 @@ paths:
           schema:
             $ref: '#/definitions/Error'
     put: 
-      summary: Update a publisher
       description: |
         Updates publisher name and expiration date.
         The licenseid ensures a publisher from antoher license cannot edited.
+      security:
+        - ApiKeyAuthorization: []
+          LicenseKeySecretAuthorization: []
       operationId: updatePublisherByKey
       tags:
         - Publishers
@@ -479,10 +508,12 @@ paths:
           schema:
             $ref: '#/definitions/Error'
     delete:
-      summary: Delete a publisher
       description: |
         Deletes a single publisher based on the key supplied.
         The licenseid ensures a publisher from antoher license cannot be deleted.
+      security:
+        - ApiKeyAuthorization: []
+          LicenseKeySecretAuthorization: []
       operationId: deletePublisher
       tags:
         - Publishers
@@ -527,30 +558,11 @@ definitions:
       result: 
         - name: "Customer X"
           licenseid: 112
-          key: 324764278
           timeCreated: "1985-04-12T23:20:50.52Z"
         - name: "Customer Y"
           licenseid: 113
-          key: 32474344278
           timeCreated: "1985-04-12T23:20:50.52Z"
   License:
-    allOf:
-      - $ref: '#/definitions/NewLicense'
-      - type: object
-        properties:
-          key:
-            type: string
-          timeCreated:
-            type: string
-            format: date-time
-    required:
-      - key
-    example:
-      key: -3422423532
-      licenseid: 122
-      name: "Customer X"
-      timeCreated: "1985-04-12T23:20:50.52Z"
-  NewLicense:
     required:
       - licenseid
       - name
@@ -559,9 +571,47 @@ definitions:
         type: string
       name:
         type: string
+      isAuthorized:
+        type: boolean
+      timeCreated:
+        type: string
+        format: date-time
+    example:
+      licenseid: 122
+      name: "Customer X"
+      isAuthorized: false
+      timeCreated: "1985-04-12T23:20:50.52Z"
+  LicenseWithSecret:
+    allOf:
+      - $ref: '#/definitions/License'
+      - type: object
+        properties:
+          apiKey:
+            type: string
+    required:
+      - apiKey
+    example:
+      licenseid: 122
+      name: "Customer X"
+      apiKey: "dkjd238o7rgkjbdewqjkqrewjkhrekujg"
+      isAuthorized: false
+      timeCreated: "1985-04-12T23:20:50.52Z"
+  NewLicense:
+    required:
+      - licenseid
+      - name
+      - secret
+    properties:
+      licenseid:
+        type: string
+      secret:
+        type: string
+      name:
+        type: string
     example:
       licenseid: "122"
       name: "Customer X"
+      secret: "secret"
   Publishers:
     allOf:
       - $ref: '#/definitions/PagedResult'
