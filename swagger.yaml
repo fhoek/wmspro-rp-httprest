@@ -22,7 +22,6 @@ info:
     Make sure *token* is base64 encoded string of `key:secret` combined. 
     
     **License Scoped Access**
-    
     For licenses (non-admin) using the API the security pattern is almost the same:
 
     ```
