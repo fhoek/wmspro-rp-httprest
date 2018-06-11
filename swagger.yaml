@@ -86,6 +86,11 @@ paths:
           description: License name to filter on.
           required: false
           type: string
+        - name: isAuthorized
+          in: query
+          description: Filter on isAuthorized, omit to see all
+          required: false
+          type: boolean
         - name: limit
           in: query
           description: Maximum number of results to return.
